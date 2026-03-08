@@ -1,40 +1,43 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+#TO-DO Make variants of the implementations where we dont keep history, just final opinions, quicker for experiments
+#TO-DO Optimize the functions by allocating memory beforehand, no list.append and copyuing of list. Tooslow
 
 # Deffuant model
-def deffuant(agents_number=100, epsilon=0.3, mu=0.5, steps=50000, seed=None):
+def deffuant(agents_number=100, epsilon=0.3, mu=0.5, steps=50000, 
+             opinion_seed=None, interaction_seed=None):
     """
     Parameters:
-    agents_number   — number of agents
-    epsilon         — confidence threshold (0 to 1)
-    mu              — convergence speed (0 to 0.5)
-    steps           — number of steps
-    seed            — random seed
-
+    agents_number    — number of agents
+    epsilon          — confidence threshold (0 to 1)
+    mu               — convergence speed (0 to 0.5)
+    steps            — number of steps
+    opinion_seed     — seed for generating initial opinions
+    interaction_seed — seed for picking agents to interact
     Returns:
-    history         — opinion of each agent at each step
+    history          — opinion of each agent at each step
     """
-    if seed is not None:
-        np.random.seed(seed)
+    # Seed for initial opinion generation
+    if opinion_seed is not None:
+        np.random.seed(opinion_seed)
 
     # Generate random opinions
     opinions = np.random.uniform(0, 1, agents_number)
+    
+    # Separate seed for interactions
+    rng = np.random.default_rng(interaction_seed)
+    
     history = [opinions.copy()]
-
     for _ in range(steps):
-        # Pick two random agents
-        i, j = np.random.choice(agents_number, 2, replace=False)
-
+        i, j = rng.choice(agents_number, 2, replace=False)
         # Check if opinions are close enough
         if abs(opinions[i] - opinions[j]) < epsilon:
             # They interact, so update values
             diff = opinions[j] - opinions[i]
             opinions[i] += mu * diff
             opinions[j] -= mu * diff
-
         history.append(opinions.copy())
-
     return np.array(history)
 
 
