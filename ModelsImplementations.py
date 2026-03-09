@@ -1,77 +1,83 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-#TO-DO Make variants of the implementations where we dont keep history, just final opinions, quicker for experiments
-#TO-DO Optimize the functions by allocating memory beforehand, no list.append and copyuing of list. Tooslow
+CONVERGENCE_TOL = 1e-6
+CONVERGENCE_CHECK_EVERY = 100
+#TO-DO THink if convergence check makese sense from efficiency pov
+#TO-DO Document code...
+def _generate_opinions(agents_number, opinion_seed):
+    return np.random.default_rng(opinion_seed).uniform(0, 1, agents_number)
 
-# Deffuant model
-def deffuant(agents_number=100, epsilon=0.3, mu=0.5, steps=50000, 
-             opinion_seed=None, interaction_seed=None):
-    """
-    Parameters:
-    agents_number    — number of agents
-    epsilon          — confidence threshold (0 to 1)
-    mu               — convergence speed (0 to 0.5)
-    steps            — number of steps
-    opinion_seed     — seed for generating initial opinions
-    interaction_seed — seed for picking agents to interact
-    Returns:
-    history          — opinion of each agent at each step
-    """
-    # Seed for initial opinion generation
-    if opinion_seed is not None:
-        np.random.seed(opinion_seed)
+def _allocate_history(steps, agents_number, initial_opinions):
+    history    = np.empty((steps + 1, agents_number))
+    history[0] = initial_opinions
+    return history
 
-    # Generate random opinions
-    opinions = np.random.uniform(0, 1, agents_number)
+def _deffuant_step(opinions, rng, epsilon, mu):
+    i, j = rng.choice(len(opinions), 2, replace=False)
+    diff = opinions[j] - opinions[i]
+    if abs(diff) < epsilon:
+        delta = mu * diff
+        opinions[i] += delta
+        opinions[j] -= delta
+
+
+def _hk_step(opinions, epsilon):
+    # Compute pairwise distance matrix — shape (n, n)
+    distances = np.abs(opinions[:, None] - opinions[None, :])
     
-    # Separate seed for interactions
+    # Boolean mask - True where two agents are within confidence bound
+    neighbors = distances <= epsilon
+    
+    # Each agent moves to the average opinion of its neighbors
+    return (neighbors * opinions).sum(axis=1) / neighbors.sum(axis=1)
+
+
+# Deffuant
+def deffuant(
+    agents_number=100,
+    epsilon=0.3,
+    mu=0.5,
+    steps=50000,
+    opinion_seed=None,
+    interaction_seed=None
+):
+    opinions = _generate_opinions(agents_number, opinion_seed)
     rng = np.random.default_rng(interaction_seed)
-    
-    history = [opinions.copy()]
-    for _ in range(steps):
-        i, j = rng.choice(agents_number, 2, replace=False)
-        # Check if opinions are close enough
-        if abs(opinions[i] - opinions[j]) < epsilon:
-            # They interact, so update values
-            diff = opinions[j] - opinions[i]
-            opinions[i] += mu * diff
-            opinions[j] -= mu * diff
-        history.append(opinions.copy())
-    return np.array(history)
+
+    for step in range(steps):
+        _deffuant_step(opinions, rng, epsilon, mu)
+
+    return opinions
+
+def deffuant_history(agents_number=100, epsilon=0.3, mu=0.5, steps=50000,
+                     opinion_seed=None, interaction_seed=None):
+    opinions = _generate_opinions(agents_number, opinion_seed)
+    rng      = np.random.default_rng(interaction_seed)
+    history  = _allocate_history(steps, agents_number, opinions)
+    for t in range(steps):
+        _deffuant_step(opinions, rng, epsilon, mu)
+        history[t+1] = opinions
+    return history
 
 
-#Hegselmann-Krause (HK) Model
-def hk(agents_number=100, epsilon=0.3, steps=100, seed=None):
-    """
-    Hegselmann-Krause Model.
+# HK
+def hk(
+    agents_number=100,
+    epsilon=0.3,
+    steps=100,
+    opinion_seed=None
+):
+    opinions = _generate_opinions(agents_number, opinion_seed)
+    for step in range(steps):
+        opinions = _hk_step(opinions, epsilon)
+        
+    return opinions
 
-    Parameters:
-    agents_number      — number of agents
-    epsilon            — confidence threshold (0 to 1)
-    steps              — number of steps
-    seed               — random seed 
-
-    Returns:
-    history            — opinion of each agent at each step
-    """
-    if seed is not None:
-        np.random.seed(seed)
-
-    #Generate random opinions
-    opinions = np.random.uniform(0, 1, agents_number)
-    history = [opinions.copy()]
-
-    for _ in range(steps):
-        new_opinions = np.zeros(agents_number)
-
-        for i in range(agents_number):
-            # Find all agents with opinion that is close enough
-            neighbors = np.where(np.abs(opinions - opinions[i]) < epsilon)[0]
-            # Update opinion to the mean
-            new_opinions[i] = np.mean(opinions[neighbors])
-
-        opinions = new_opinions
-        history.append(opinions.copy())
-
-    return np.array(history)
+def hk_history(agents_number=100, epsilon=0.3, steps=100, opinion_seed=None):
+    opinions = _generate_opinions(agents_number, opinion_seed)
+    history  = _allocate_history(steps, agents_number, opinions)
+    for t in range(steps):
+        opinions     = _hk_step(opinions, epsilon)
+        history[t+1] = opinions
+    return history
