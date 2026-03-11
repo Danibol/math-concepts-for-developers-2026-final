@@ -63,6 +63,19 @@ def epsilon_sweep(opinions_list, epsilon_values):
 
     return results
 
+def average_epsilon_sweep(epsilon_values, opinions_dict):
+    result = []
+
+    for eps in epsilon_values:
+        opinions        = opinions_dict[eps]
+        clusters        = np.mean([len(get_clusters(op, eps)) for op in opinions])
+        polarization    = np.mean([get_polarization_index(op) for op in opinions])
+        theoretical     = get_theoretical_number_of_clusters(eps)
+
+        result.append([eps, clusters, polarization, theoretical])
+
+    return result
+
 def plot_epsilon_sweep(results, title=""):
     epsilon_list        = [r[0] for r in results]
     simulated_list      = [r[1] for r in results]
