@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import deque
 
-
-# TO-DO check add/remove edge functions. DO they keep the grpah consistent. Storing (i,j)/(j,i) as edges. IMORTANT!
+# TO-DO Check representation, will it be better to use list of neighbours? Will it be faster? How much... DO at end, keep interface
 class Graph:
     
     def __init__(self, n_nodes):
@@ -12,6 +12,9 @@ class Graph:
         self.edges = []  
     
     def add_edge(self, i, j):
+        if i == j:
+            return
+
         if self.A[i, j] == 1:
             return
 
@@ -33,23 +36,29 @@ class Graph:
         return degrees.mean()
     
     def is_connected(self):
-        # BFS
+        #BFS
         visited = set()
-        queue = [0]
+        queue = deque([0])
+
         while queue:
-            node = queue.pop(0)
+            node = queue.popleft()
             if node not in visited:
                 visited.add(node)
                 queue.extend(self.neighbors(node))
+
         return len(visited) == self.n_nodes
 
     def remove_edge(self, i, j):
-        if self.A[i,j] == 0:
+        if self.A[i, j] == 0:
             return
 
-        self.A[i,j] = 0
-        self.A[j,i] = 0
-        self.edges.remove((i,j)) if (i,j) in self.edges else self.edges.remove((j,i))
+        self.A[i, j] = 0
+        self.A[j, i] = 0
+
+        if (i, j) in self.edges:
+            self.edges.remove((i, j))
+        elif (j, i) in self.edges:
+            self.edges.remove((j, i))
 
 def get_fully_connected(n):
     #Every agent connected to every other agent
