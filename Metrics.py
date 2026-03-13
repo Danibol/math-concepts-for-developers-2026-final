@@ -82,7 +82,7 @@ def plot_epsilon_sweep(results, title=""):
     polarization_list   = [r[2] for r in results]
     theoretical_list    = [r[3] for r in results]
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), clear=True)
 
     axes[0].plot(epsilon_list, simulated_list,   'o-',  label='Simulated')
     axes[0].plot(epsilon_list, theoretical_list, 's--', label='Theory')
