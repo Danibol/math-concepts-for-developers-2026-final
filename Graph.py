@@ -60,6 +60,10 @@ class Graph:
         elif (j, i) in self.edges:
             self.edges.remove((j, i))
 
+    # Returs random edge
+    def get_random_edge(self, rng):
+        return self.edges[rng.integers(len(self.edges))]
+
 def get_fully_connected(n):
     #Every agent connected to every other agent
     G = Graph(n)
