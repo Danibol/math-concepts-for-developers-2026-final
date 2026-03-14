@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Graph import Graph
 
-CONVERGENCE_TOL = 1e-6
-CONVERGENCE_CHECK_EVERY = 100
+CONVERGENCE_TOL = 1e-2
+CONVERGENCE_CHECK_EVERY = 1000
 #TO-DO THink if convergence check makese sense from efficiency pov
 #TO-DO Document code...
 def _generate_opinions(agents_number, opinion_seed):
@@ -69,10 +69,18 @@ def deffuant(
 ):
     opinions = _generate_opinions(agents_number, opinion_seed)
     rng = np.random.default_rng(interaction_seed)
+    prev = opinions.copy()
 
-    for step in range(steps):
+    for step in range(steps):   
         _deffuant_step(opinions, rng, epsilon, mu, graph)
+        if step % CONVERGENCE_CHECK_EVERY == 0 and step > 0:
+            diff = np.max(np.abs(opinions - prev))
 
+            #print(f'step={step}, max_diff={diff:.2e}')
+            if diff < CONVERGENCE_TOL:
+                #print(f'converged at step {step}')
+                break
+            prev = opinions.copy()
     return opinions
 
 def deffuant_history(agents_number=100, epsilon=0.3, mu=0.5, steps=50000,
