@@ -44,7 +44,7 @@ def _deffuant_step(opinions, rng, epsilon, mu, graph=None):
 
 
 def _hk_step(opinions, epsilon, graph=None):
-     """
+    """
     Each agent is moved to the mean of the opinions of all agents withing the confidence bound.
     Optionally Graph can be specified so an agent can be directly influence only by its neighbours.
     """
