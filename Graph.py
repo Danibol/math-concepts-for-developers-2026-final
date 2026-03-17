@@ -51,20 +51,7 @@ class Graph:
         """
         degrees = self.A.sum(axis=1)
         return degrees.mean()
-    
-    def is_connected(self):
-        #BFS
-        visited = set()
-        queue = deque([0])
-
-        while queue:
-            node = queue.popleft()
-            if node not in visited:
-                visited.add(node)
-                queue.extend(self.neighbors(node))
-
-        return len(visited) == self.n_nodes
-
+        
 
     def remove_edge(self, i, j):
         """
@@ -81,6 +68,7 @@ class Graph:
             self.edges.remove((i, j))
         elif (j, i) in self.edges:
             self.edges.remove((j, i))
+            
 
     def get_random_edge(self, rng):
         """
