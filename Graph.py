@@ -6,6 +6,11 @@ from collections import deque
 class Graph:
     
     def __init__(self, n_nodes):
+        """
+        Parameters
+        ----------
+        n_nodes : int - number of nodes in the graph
+        """
         self.n_nodes = n_nodes
         self.A = np.zeros((n_nodes, n_nodes), dtype=int)  # adjacency matrix
         # Keep edges list also. We need to be able to quckly pick random edge. Only adj matrix  makes it very slow. And multiple runs take too much time
@@ -80,6 +85,9 @@ class Graph:
 def get_fully_connected(n):
     """
     Returns fully connected graph with n vertices
+    Parameters
+    ----------
+    n : int - number of nodes
     """
     #Every agent connected to every other agent
     G = Graph(n)
@@ -95,6 +103,13 @@ def get_small_world(n, k=4, p=0.1, seed=None):
     Follows these steps:
     - Connect each vertix to k nearest neigbours
     - THen Rewire each edge with probability p to a random node. 
+
+    Parameters
+    ----------
+    n    : int   - number of nodes
+    k    : int   - each node is initially connected to k nearest neighbours
+    p    : float - probability of rewiring each edge, in [0, 1]
+    seed : int | None - random seed for reproducibility
     """
     if seed is not None:
         np.random.seed(seed)
@@ -139,6 +154,12 @@ def get_scale_free(n, m=2, seed=None):
     Follows these these steps:
     - Create small fully connected core
     - Then add new nodes. Each connects to m existing nodes, but the probability to connect to a given node is bigger the bigger the degree of that node is.
+
+    Parameters
+    ----------
+    n    : int        - number of nodes
+    m    : int        - number of edges each new node attaches with
+    seed : int | None - random seed for reproducibility
     """
     
     if seed is not None:

@@ -89,6 +89,16 @@ def deffuant(
     """
     Runs the Deffuant model and returns only the final opinions. We dont keep full history here, so it is a bit faster.
     Used in the experiments when no opinion history is needed.
+
+    Parameters
+    ----------
+    agents_number    : int        - number of agents
+    epsilon          : float      - confidence bound
+    mu               : float      - convergence parameter
+    steps            : int        - maximum number of interaction steps
+    opinion_seed     : int | None - seed for initial opinion draw
+    interaction_seed : int | None - seed for interaction order
+    graph            : Graph | None - if provided, restricts interactions to edges
     """
     opinions = generate_opinions(agents_number, opinion_seed)
     rng = np.random.default_rng(interaction_seed)
@@ -118,6 +128,20 @@ def deffuant_history(agents_number=100, epsilon=0.3, mu=0.5, steps=50000,
     """
     Does the same as the deffuant function, but returns the whole history of opinions.
     Separated them in order to be easier to know what format of result to expect.
+
+    Parameters
+    ----------
+    agents_number    : int        - number of agents
+    epsilon          : float      - confidence bound
+    mu               : float      - convergence parameter
+    steps            : int        - number of interaction steps
+    opinion_seed     : int | None - seed for initial opinion draw
+    interaction_seed : int | None - seed for interaction order
+    graph            : Graph | None - if provided, restricts interactions to edges
+
+    Returns
+    -------
+    np.ndarray - shape (steps+1, agents_number), row 0 = initial opinions
     """
     opinions = generate_opinions(agents_number, opinion_seed)
     rng      = np.random.default_rng(interaction_seed)
@@ -140,7 +164,16 @@ def hk(
     Run the HK model. Returns only final opinions.
     No convergence check as it takes significantly less steps than Deffuant.
     It may make some sense, but not as much.
+
+    Parameters
+    ----------
+    agents_number : int        - number of agents
+    epsilon       : float      - confidence bound
+    steps         : int        - number of synchronous update steps
+    opinion_seed  : int | None - seed for initial opinion draw
+    graph         : Graph | None - if provided, restricts each agent's neighbourhood
     """
+    
     opinions = generate_opinions(agents_number, opinion_seed)
     for step in range(steps):
         opinions = _hk_step(opinions, epsilon, graph)
@@ -153,6 +186,19 @@ def hk_history(agents_number=100, epsilon=0.3, steps=100,
     """
     Runs HK, but returns the full history.
     Initial opinions can be specified.
+
+    Parameters
+    ----------
+    agents_number    : int             - number of agents
+    epsilon          : float           - confidence bound
+    steps            : int             - number of synchronous update steps
+    opinion_seed     : int | None      - seed for initial opinion draw
+    graph            : Graph | None    - if provided, restricts each agent's neighbourhood
+    initial_opinions : np.ndarray | None - if provided, overrides opinion_seed
+
+    Returns
+    -------
+    np.ndarray — shape (steps+1, agents_number), row 0 = initial opinions
     """
     if initial_opinions is not None:
         opinions = initial_opinions.copy()
